@@ -7,6 +7,6 @@ def apply_over_subwins(X, func, subwins, **kwargs):
             i * win_length,
             (i + 1) * win_length
         ))
-        subwin_X = X.iloc[indices, :]
+        subwin_X = X[indices, :]
         result.append(func(subwin_X, **kwargs))
     return result

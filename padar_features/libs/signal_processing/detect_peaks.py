@@ -83,7 +83,6 @@ def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
     >>> # set threshold = 2
     >>> detect_peaks(x, threshold = 2, show=True)
     """
-
     x = np.atleast_1d(x).astype('float64')
     if x.size < 3:
         return np.array([], dtype=int)
@@ -140,7 +139,7 @@ def detect_peaks(x, mph=None, mpd=1, threshold=0, edge='rising',
         if valley:
             x = -x
         _plot(x, mph, mpd, threshold, edge, valley, ax, ind)
-
+    print(ind.shape)
     return ind
 
 def _plot(x, mph, mpd, threshold, edge, valley, ax, ind):

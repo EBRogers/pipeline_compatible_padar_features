@@ -10,6 +10,7 @@ Date: Jul 10, 2018
 """
 from . import validator
 import numpy as np
+import pandas as pd
 
 
 def vec2rowarr(X):
@@ -57,3 +58,11 @@ def want_axis(X, want='xyz'):
 
 def as_float64(X):
     return X.astype(np.float64)
+
+
+def rowarr2df(X, st, et):
+    df = pd.DataFrame(index=[0], data=X, columns=range(0, X.shape[1]))
+    df.insert(0, 'START_TIME', st)
+    df.insert(1, 'STOP_TIME', et)
+    df = df.set_index(['START_TIME', 'STOP_TIME'])
+    return df

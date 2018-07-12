@@ -11,80 +11,155 @@ from .. import validator
 from .. import formatter
 
 
-def frequency_features(X, sr, freq_range=None, top_n_dominant=1, want='all'):
-    '''compute frequency features for each axis, result will be aligned in the 
-    order of f1,f2,...,p1,p2,..,pt for each axis
-    '''
-    freq, Sxx = _spectrum(X, sr, freq_range)
-    Sxx = formatter.vec2colarr
-    result = []
-    if len(Sxx.shape) == 1:
-        Sxx = np.reshape(Sxx, (Sxx.shape[0], 1))
-    elif len(Sxx.shape) == 0:
-        return result
+class FrequencyFeature:
+    def __init__(self, X, sr, freq_range=None):
+        self._check_input(X)
+        self._X = X
+        self._sr = sr
+        self._freq_range = freq_range
 
-    for n in range(0, Sxx.shape[1]):
-        # Get dominant frequencies
-        freq_peaks, Sxx_peaks = _peaks(Sxx[:, n], freq)
-        result_freq = freq_peaks[0:top_n_dominant]
-        result_Sxx = Sxx_peaks[0:top_n_dominant]
-        if result_freq.shape[0] < top_n_dominant:
-            result_freq = np.append(result_freq, np.zeros(
-                (top_n_dominant - result_freq.shape[0],)))
-            result_Sxx = np.append(result_Sxx, np.zeros(
-                (top_n_dominant - result_Sxx.shape[0],)))
-        # Get total power
-        total_power = [np.sum(Sxx[:, n])]
+    def _check_input(self, X):
+        if not validator.is_xyz_inertial(X) and not validator.is_vm_inertial(X):
+            raise ValueError(
+                '''Input numpy array must be a 3 axis sensor or in vector
+                 magnitude''')
 
-        # Get power of band > 3.5Hz
-        highend_power = [np.sum(Sxx[freq > 3.5, n])]
+    def spectrogram(self):
+        freq, time, Sxx = signal.spectrogram(
+            self._X,
+            fs=self._sr,
+            window='hamming',
+            nperseg=self._X.shape[0],
+            noverlap=0,
+            detrend='constant',
+            return_onesided=True,
+            scaling='density',
+            axis=0,
+            mode='psd')
+        # interpolate to get values in the freq_range
+        if self._freq_range is not None:
+            self._freq = interpolate(freq, Sxx)
+            Sxx_interpolated = interpolate_f(freq_range)
+        else:
+            self._freq = freq
+            Sxx_interpolated = Sxx
+        Sxx_interpolated = np.squeeze(Sxx_interpolated)
+        self._Sxx = formatter.vec2colarr(Sxx_interpolated)
+        return self
 
-        result = np.concatenate(
-            (result, result_freq, result_Sxx, total_power, highend_power))
-    return result
+    def dominant_frequency(self, n=1):
+        if hasattr(self, '_freq_peaks'):
+            result = list(
+                map(
+                    lambda i: self._freq_peaks[i][n -
+                                                  1] if
+                    len(self._freq_peaks[i]) >= n else -1,
+                    range(0, self._Sxx.shape[1])))
+            return formatter.vec2rowarr(np.array(result))
+        else:
+            raise ValueError('Please run spectrogram and peaks methods first')
 
+    def dominant_frequency_power(self, n=1):
+        if hasattr(self, '_Sxx_peaks'):
+            result = list(
+                map(
+                    lambda i: self._Sxx_peaks[i][n -
+                                                 1] if
+                    len(self._Sxx_peaks[i]) >= n else -1,
+                    range(0, self._Sxx.shape[1])))
+            return formatter.vec2rowarr(np.array(result))
+        else:
+            raise ValueError('Please run spectrogram and peaks methods first')
 
-def _check_input(X):
-    if not validator.is_xyz_inertial(X) and not validator.is_vm_inertial(X):
-        raise ValueError(
-            'Input numpy array must be a 3 axis sensor or in vector magnitude')
+    def total_power(self):
+        if hasattr(self, '_Sxx'):
+            total_power = formatter.vec2rowarr(np.sum(self._Sxx, axis=0))
+            return total_power
+        else:
+            raise ValueError('Please run spectrogram first')
 
+    def limited_band_dominant_frequency(self, low=0, high=np.inf, n=1):
+        def _limited_band_df(i):
+            freq = self._freq_peaks[i]
+            indices = (freq >= low) & (freq <= high)
+            limited_freq = freq[indices]
+            return limited_freq[n-1]
+        if not hasattr(self, '_freq_peaks'):
+            raise ValueError('Please run spectrogram and peaks methods first')
 
-def _want(result, want='all'):
+        result = list(
+            map(_limited_band_df,
+                range(0, self._Sxx.shape[1])))
 
+        return formatter.vec2rowarr(np.array(result))
 
+    def limited_band_dominant_frequency_power(self, low=0, high=np.inf, n=1):
+        def _limited_band_df_power(i):
+            freq = self._freq_peaks[i]
+            Sxx = self._Sxx_peaks[i]
+            indices = (freq >= low) & (freq <= high)
+            limited_Sxx = Sxx[indices]
+            return limited_Sxx[n-1]
+        if not hasattr(self, '_freq_peaks'):
+            raise ValueError('Please run spectrogram and peaks methods first')
 
-def _spectrum(X, sr, freq_range=None):
-    freq, time, Sxx = signal.spectrogram(
-        X,
-        fs=sr,
-        window='hamming',
-        nperseg=X.shape[0],
-        noverlap=0,
-        detrend='constant',
-        return_onesided=True,
-        scaling='density',
-        axis=0,
-        mode='psd')
-    # interpolate to get values in the freq_range
-    if freq_range is not None:
-        interpolate_f = interpolate(freq, Sxx)
-        Sxx_interpolated = interpolate_f(freq_range)
-    else:
-        freq_range = freq
-        Sxx_interpolated = Sxx
-    Sxx_interpolated = np.squeeze(Sxx_interpolated)
-    return (freq_range, Sxx_interpolated)
+        result = list(
+            map(_limited_band_df_power,
+                range(0, self._Sxx.shape[1])))
 
+        return formatter.vec2rowarr(np.array(result))
 
-def _peaks(y, x, sort='descend'):
-    y = y.flatten()
-    locs = detect_peaks(y)
-    y_peaks = y[locs]
-    x_peaks = x[locs]
-    sorted_locs = np.argsort(y_peaks, kind='quicksort')
-    if sort == 'descend':
-        sorted_locs = sorted_locs[::-1][:len(sorted_locs)]
-    y_sorted_peaks = y_peaks[sorted_locs]
-    x_sorted_peaks = x_peaks[sorted_locs]
-    return (x_sorted_peaks, y_sorted_peaks)
+    def limited_band_total_power(self, low=0, high=np.inf):
+        if not hasattr(self, '_freq'):
+            raise ValueError('Please run spectrogram first')
+        indices = (self._freq >= low) & (self._freq <= high)
+        limited_Sxx = self._Sxx[indices, :]
+        limited_total_power = formatter.vec2rowarr(np.sum(limited_Sxx, axis=0))
+        return limited_total_power
+
+    def highend_power(self):
+        if hasattr(self, '_Sxx'):
+            highend_power = self.limited_band_total_power(low=3.5)
+            return highend_power
+        else:
+            raise ValueError('Please run spectrogram first')
+
+    def dominant_frequency_power_ratio(self, n=1):
+        return np.divide(self.dominant_frequency_power(n=n),
+                         self.total_power())
+
+    def middlerange_dominant_frequency(self):
+        return self.limited_band_dominant_frequency(low=0.6, high=2.6, n=1)
+
+    def middlerange_dominant_frequency_power(self):
+        return self.limited_band_dominant_frequency_power(low=0.6, high=2.6,
+                                                          n=1)
+
+    def peaks(self):
+        def _sort_peaks(i, j):
+            if len(i) == 0:
+                sorted_freq_peaks = np.array([0])
+                sorted_Sxx_peaks = np.array([np.nanmean(self._Sxx, axis=0)[j]])
+            else:
+                freq_peaks = self._freq[i]
+                Sxx_peaks = self._Sxx[i, j]
+                sorted_i = np.argsort(Sxx_peaks)
+                sorted_i = sorted_i[::-1]
+                sorted_freq_peaks = freq_peaks[sorted_i]
+                sorted_Sxx_peaks = Sxx_peaks[sorted_i]
+            print('sxx:' + str(j) + ":" + str(sorted_Sxx_peaks.shape))
+            print('freq:' + str(j) + ":" + str(sorted_freq_peaks.shape))
+            return (sorted_freq_peaks, sorted_Sxx_peaks)
+
+        n_axis = self._Sxx.shape[1]
+        m_freq = self._Sxx.shape[0]
+        # at least 0.1 Hz different when looking for peak
+        mpd = int(np.ceil(1.0 / (self._freq[1] - self._freq[0]) * 0.1))
+        # print(self._Sxx.shape)
+        i = list(map(lambda x: detect_peaks(
+            x, mph=1e-5, mpd=mpd), list(self._Sxx.T)))
+        j = range(0, n_axis)
+        result = list(map(_sort_peaks, i, j))
+        self._freq_peaks = list(map(lambda x: x[0], result))
+        self._Sxx_peaks = list(map(lambda x: x[1], result))
+        return self

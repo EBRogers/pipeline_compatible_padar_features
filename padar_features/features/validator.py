@@ -10,6 +10,7 @@ Date: Jul 10, 2018
 import numpy as np
 import pandas as pd
 from . import formatter
+from datetime import datetime
 
 
 def has_timestamp(X):
