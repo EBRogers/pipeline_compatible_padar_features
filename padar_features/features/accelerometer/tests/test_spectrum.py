@@ -11,7 +11,7 @@ def test_constant():
     generator = SignalGenerator()
     data = generator.constant()
     freq_features = FrequencyFeature(data, sr=50)
-    freq_features.spectrogram().peaks()
+    freq_features.fft().peaks()
     assert np.allclose(freq_features.dominant_frequency(n=1), np.zeros((1, 3)))
     assert np.allclose(
         freq_features.dominant_frequency_power(n=1), np.zeros((1, 3)))
@@ -26,7 +26,7 @@ def test_gaussian():
     generator = SignalGenerator()
     data = generator.random_gaussian(means=[1, 0, -1], stds=[0.1, 0.1, 0.1])
     freq_features = FrequencyFeature(data, sr=50)
-    freq_features.spectrogram().peaks()
+    freq_features.fft().peaks()
     top_n = range(1, 11)
     top_n_dominant_frequencies = np.concatenate(
         list(map(freq_features.dominant_frequency_power, top_n)), axis=0)
@@ -42,7 +42,7 @@ def test_sinusoid():
     generator = SignalGenerator(sr=100)
     data = generator.sinusoid(noise_stds=[0, 0, 0])
     freq_features = FrequencyFeature(data, sr=100)
-    freq_features.spectrogram().peaks()
+    freq_features.fft().peaks()
     dom_freqs = freq_features.dominant_frequency(n=1)
     dom_freqs_second = freq_features.dominant_frequency(n=2)
     assert np.allclose(dom_freqs, np.array([1, 2, 3]))
@@ -60,7 +60,7 @@ def test_double_sinusoid():
     data2 = generator.sinusoid(dom_freqs=[0.1, 0.2, 0.3], amps=[0.1, 0.2, 0.3])
     data = data1 + data2
     freq_features = FrequencyFeature(data, sr=100)
-    freq_features.spectrogram().peaks()
+    freq_features.fft().peaks()
     dom_freqs = freq_features.dominant_frequency(n=1)
     dom_freqs_second = freq_features.dominant_frequency(n=2)
     dom_freqs_third = freq_features.dominant_frequency(n=3)

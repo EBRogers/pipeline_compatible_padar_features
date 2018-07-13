@@ -50,6 +50,6 @@ def is_col_arr(X):
 
 
 def has_enough_samples(X, threshold=1):
-    if validator.is_vector(X):
+    if is_vector(X):
         X = formatter.vec2colarr(X)
     return X.shape[0] >= threshold

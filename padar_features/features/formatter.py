@@ -66,3 +66,10 @@ def rowarr2df(X, st, et):
     df.insert(1, 'STOP_TIME', et)
     df = df.set_index(['START_TIME', 'STOP_TIME'])
     return df
+
+
+def add_name(X, name):
+    n_dim = X.shape[1]
+    names = [name.upper() + '_' + str(n) for n in range(0, n_dim)]
+    result = pd.DataFrame(data=X, columns=names)
+    return result
