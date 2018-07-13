@@ -23,9 +23,10 @@ class SignalGenerator:
 
     def get_timestamps(self):
         st = datetime.now()
+        et = st + pd.Timedelta(self._duration, unit='s')
         periods = int(np.ceil(self._duration * self._sr))
         timestamps = pd.date_range(
-            start=st, end=st + pd.Timedelta(self._duration, unit='s'),
+            start=st, end=et,
             periods=periods)
         return timestamps
 

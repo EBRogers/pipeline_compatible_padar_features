@@ -85,9 +85,11 @@ class FeatureExtractor:
         result_dfs = []
         for df_dict in self._data:
             data = df_dict['DATA']
+            path = df_dict['PATH']
+            logger.debug(path)
             result_df = delayed(self._compute_on_chunk)(func, data)
             result_df = delayed(
-                lambda df: df.assign(PATH=df_dict['PATH']))(result_df)
+                lambda df, path: df.assign(PATH=path))(result_df, path)
             result_dfs.append(result_df)
         return delayed(pd.concat)(result_dfs, axis=0)
 

@@ -40,8 +40,9 @@ class OrientationFeature:
             orientation_xyz = np.array([np.nan, np.nan, np.nan])
         else:
             gravity = np.array(np.mean(X, axis=0), dtype=np.float)
+            gravity_vm = norm(gravity, ord=2, axis=0)
             orientation_xyz = np.arccos(
-                gravity / norm(gravity, ord=2, axis=0))
+                gravity / gravity_vm) if gravity_vm != 0 else np.zeros_like(gravity)
             if unit == 'deg':
                 orientation_xyz = np.rad2deg(orientation_xyz)
         return formatter.vec2rowarr(orientation_xyz)

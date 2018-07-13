@@ -10,6 +10,11 @@ from ...libs.signal_processing.detect_peaks import detect_peaks
 from .. import validator
 from .. import formatter
 import logging
+from bokeh.plotting import figure
+from bokeh.palettes import brewer
+from bokeh.models import ColumnDataSource, LabelSet, Label
+from bokeh.layouts import gridplot
+
 
 logger = logging.getLogger()
 
@@ -146,8 +151,9 @@ class FrequencyFeature:
             raise ValueError('Please run spectrogram first')
 
     def dominant_frequency_power_ratio(self, n=1):
+        power = self.total_power().values
         result = np.divide(self.dominant_frequency_power(n=n).values,
-                           self.total_power().values)
+                           power, out=np.zeros_like(power), where=power != 0)
         result = formatter.add_name(
             result, self.dominant_frequency_power_ratio.__name__)
         return result
@@ -187,9 +193,43 @@ class FrequencyFeature:
         mpd = int(np.ceil(1.0 / (self._freq[1] - self._freq[0]) * 0.1))
         # print(self._Sxx.shape)
         i = list(map(lambda x: detect_peaks(
-            x, mph=1e-5, mpd=mpd), list(self._Sxx.T)))
+            x, mph=1e-3, mpd=mpd), list(self._Sxx.T)))
         j = range(0, n_axis)
         result = list(map(_sort_peaks, i, j))
         self._freq_peaks = list(map(lambda x: x[0], result))
         self._Sxx_peaks = list(map(lambda x: x[1], result))
         return self
+
+    def visualize(self, top_n=5):
+
+        colors = brewer['Accent'][self._Sxx.shape[1]]
+        legends = ['X', 'Y', 'Z']
+        ps = []
+        common_x_range = None
+        common_y_range = None
+        for i in range(0, self._Sxx.shape[1]):
+            if common_x_range is None:
+                p = figure(title="Power Spectrum Density Plot for %s, SR=%dHz" % (
+                    legends[i], self._sr))
+            else:
+                p = figure(title="Power Spectrum Density Plot for %s, SR=%dHz" % (
+                    legends[i], self._sr), x_range=common_x_range, y_range=common_y_range)
+            p.xaxis.axis_label = 'Frequency (Hz)'
+            p.yaxis.axis_label = 'Power Spectrum Density'
+            peak_source = ColumnDataSource(data=dict(
+                freq=self._freq_peaks[i][:top_n],
+                peak=self._Sxx_peaks[i][:top_n],
+                name=['%.2f Hz' %
+                      f for f in self._freq_peaks[i][:top_n].tolist()]
+            ))
+            peak_labels = LabelSet(x='freq', y='peak', text='name',
+                                   level='glyph', source=peak_source, render_mode='canvas')
+            p.line(self._freq, self._Sxx[:, i],
+                   color=colors[i], line_width=1.5)
+            p.x(self._freq_peaks[i], self._Sxx_peaks[i],
+                color=colors[i], size=8, line_width=1.5)
+            p.add_layout(peak_labels)
+            common_x_range = p.x_range
+            common_y_range = p.y_range
+            ps.append([p])
+        return gridplot(ps, plot_width=1000, plot_height=300)
