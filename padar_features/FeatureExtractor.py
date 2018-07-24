@@ -107,7 +107,7 @@ class FeatureExtractor:
         ) + '_' + str(col) for col in result_df.columns]
         return result_df
 
-    def worflow_graph(self):
+    def workflow_graph(self):
         self._workflow.visualize(filename='workflow.svg')
 
     def workflow_profile(self):
@@ -177,7 +177,7 @@ class FeatureExtractor:
                                   group_dicts)
             result = extractor.compute(func, sr=sr)
             if workflow_graph:
-                extractor.worflow_graph()
+                extractor.workflow_graph()
             extractor.workflow_profile()
             result.to_csv(output, float_format='%.9f')
             return result
