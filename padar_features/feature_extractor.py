@@ -44,7 +44,7 @@ class FeatureExtractor:
                     group_df['GROUP' +
                              str(group_names.index(name))] = name
                 group_dfs.append(group_df)
-            result = pd.concat(group_dfs)
+            result = pd.concat(group_dfs, sort=False)
             result.set_index(group_col_names, inplace=True, append=True)
             return result
 
@@ -57,8 +57,12 @@ class FeatureExtractor:
         self._grouper = MHealthGrouper(data_inputs)
         self._groupby = GroupBy(
             data_inputs, **MhealthWindowing.make_metas(data_inputs))
-        self._groupby.split(self._grouper.pid_group(),
-                            self._grouper.sid_group(),
+        groups = [
+            self._grouper.pid_group(),
+            self._grouper.sid_group(),
+            self._grouper.auto_init_placement_group()
+        ]
+        self._groupby.split(*groups,
                             ingroup_sortkey_func=sort_func,
                             descending=False)
         self._groupby.apply(load_data)
@@ -90,4 +94,5 @@ if __name__ == '__main__':
         extractor.show_profiling()
         extractor.save(output)
 
+    # extract_features('D:/data/spades_lab/SPADES_2/MasterSynced/**/Actigraph*.sensor.csv', output='./test.csv', sr=80)
     run(extract_features)
