@@ -19,19 +19,20 @@ logger = logging.getLogger()
 
 class OrientationFeature:
     def __init__(self, X, subwins=4):
-        OrientationFeature.check_input(X)
+        OrientationFeature._check_input(X)
         self._X = X
         self._subwins = subwins
 
     @staticmethod
-    def check_input(X):
-        if not validator.is_xyz_inertial(X):
+    def _check_input(X):
+        if not validator.is_xyz_inertial(X) and not validator.is_vm_inertial(X):
             raise ValueError(
-                'Input numpy array must be a 3 axis sensor')
+                '''Input numpy array must be a 3 axis sensor or in vector
+                 magnitude''')
 
     @staticmethod
     def orientation_xyz(X, unit='rad'):
-        OrientationFeature.check_input(X)
+        OrientationFeature._check_input(X)
         X = formatter.as_float64(X)
         if not validator.has_enough_samples(X):
             logger.warning(
