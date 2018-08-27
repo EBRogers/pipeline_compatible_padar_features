@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='padar_features',
-    version='0.2.1',
+    version='0.2.5',
     packages=find_packages(),
     include_package_data=True,
     description='Extension of feature computation to be used in padar package',
@@ -12,6 +12,8 @@ setup(
         "numpy",
         "scipy",
         "dask[complete]",
-        "bokeh"
+        "bokeh",
+        "padar_parallel",
+        "padar_converter"
     ],
 )

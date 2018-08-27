@@ -20,7 +20,8 @@ class FeatureExtractor:
     def add_feature_set(self, feature_set):
         self._feature_set = feature_set
 
-    def extract_mhealth(self, data_inputs, interval=12.8, step=12.8, scheduler='processes', **kwargs):
+    def extract_mhealth(self, data_inputs, interval=12.8, step=12.8,
+                        scheduler='processes', **kwargs):
         compute = self._feature_set
 
         def sort_func(item):
@@ -28,7 +29,8 @@ class FeatureExtractor:
 
         def load_data(item, all_items):
             metas = GroupBy.get_meta(item)
-            return GroupBy.bundle(delayed(fileio.load_sensor)(GroupBy.get_data(item)), **metas)
+            data_loader = delayed(fileio.load_sensor)
+            return GroupBy.bundle(data_loader(GroupBy.get_data(item)), **metas)
 
         @delayed
         def join_as_dataframe(groups):
@@ -51,7 +53,7 @@ class FeatureExtractor:
         @delayed
         @MhealthWindowing.groupby_windowing('sensor')
         def compute_features(df, **kwargs):
-            return compute(df.values[:, 1:], **kwargs)
+            return compute(df.values, **kwargs)
 
         self._inputs = data_inputs
         self._grouper = MHealthGrouper(data_inputs)
@@ -87,12 +89,15 @@ if __name__ == '__main__':
     extractor = FeatureExtractor()
     extractor.add_feature_set(FeatureSet.compute_posture_and_activity)
 
-    def extract_features(file_pattern, *, output, interval=12.8, step=12.8, sr):
+    def extract_features(file_pattern, *, output,
+                         interval=12.8, step=12.8, sr):
         files = glob(file_pattern, recursive=True)
         extractor.extract_mhealth(
-            files, scheduler='processes', interval=interval, step=step, sr=int(sr))
+            files, scheduler='processes', interval=interval, step=step,
+            sr=int(sr))
         extractor.show_profiling()
         extractor.save(output)
 
-    # extract_features('D:/data/spades_lab/SPADES_2/MasterSynced/**/Actigraph*.sensor.csv', output='./test.csv', sr=80)
+    # extract_features('D:/data/spades_lab/SPADES_2/MasterSynced/**/Actigraph*.sensor.csv',
+    #  output='./test.csv', sr=80)
     run(extract_features)
