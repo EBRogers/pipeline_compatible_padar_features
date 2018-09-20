@@ -8,9 +8,9 @@ Date: Jul 10, 2018
 """
 import numpy as np
 from numpy.linalg import norm
-from .. import formatter
-from .. import operator
-from .. import validator
+from ...libs.data_formatting import formatter
+from ...libs.data_formatting import operator
+from ...libs.data_formatting import validator
 import logging
 
 
@@ -18,10 +18,11 @@ logger = logging.getLogger()
 
 
 class OrientationFeature:
-    def __init__(self, X, subwins=4):
+    def __init__(self, X, subwins=None, subwin_samples=None):
         OrientationFeature._check_input(X)
         self._X = X
         self._subwins = subwins
+        self._subwin_samples = subwin_samples
 
     @staticmethod
     def _check_input(X):
@@ -50,7 +51,7 @@ class OrientationFeature:
 
     def estimate_orientation(self, unit='rad'):
         result = operator.apply_over_subwins(
-            self._X, OrientationFeature.orientation_xyz, subwins=self._subwins, unit=unit)
+            self._X, OrientationFeature.orientation_xyz, subwins=self._subwins, subwin_samples=self._subwin_samples, unit=unit)
         self._orientations = np.concatenate(result, axis=0)
         logger.debug("Est.Orientation=" + str(self._orientations.shape))
         return self

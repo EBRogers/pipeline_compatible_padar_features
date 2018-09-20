@@ -1,5 +1,5 @@
 import numpy as np
-from ....libs.signal_generator import SignalGenerator
+from ....libs.signal_processing.signal_generator import SignalGenerator
 from .. import stats
 
 

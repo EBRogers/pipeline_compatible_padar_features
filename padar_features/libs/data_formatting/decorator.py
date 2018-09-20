@@ -10,3 +10,5 @@ Author: Qu Tang
 Date: 07/10/2018
 
 """
+import pandas as pd
+import numpy as np

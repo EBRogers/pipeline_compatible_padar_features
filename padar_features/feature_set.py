@@ -1,8 +1,9 @@
 from functools import partial
-from .features.accelerometer import stats, spectrum, orientation
+from .features.accelerometer import stats, spectrum, orientation, activation
+from .libs.signal_processing.filters import butterworth
 import importlib
 from numpy.linalg import norm
-from .features.formatter import as_float64, vec2colarr
+from .libs.data_formatting.formatter import as_float64, vec2colarr
 import pandas as pd
 
 
@@ -17,10 +18,11 @@ class FeatureSet:
         self._feature_funcs.append(func)
         return self
 
-    def add_orientation_feature(self, feature_name, subwins=4, unit='deg'):
+    def add_orientation_feature(self, feature_name, subwins=4, subwin_samples=None, unit='deg'):
         def get_orientation_feature_func(X):
             if self._ori is None:
-                self._ori = orientation.OrientationFeature(X, subwins=subwins)
+                self._ori = orientation.OrientationFeature(
+                    X, subwins=subwins, subwin_samples=subwin_samples)
                 self._ori.estimate_orientation(unit=unit)
             result = getattr(self._ori, feature_name)()
             return result
@@ -59,6 +61,38 @@ class FeatureSet:
             .add_orientation_feature('std_angles', subwins=ori_subwins,
                                      unit=ori_unit)
         return feature_set.compute(X)
+
+    @staticmethod
+    def location_matters(X, sr, subwin_in_secs=2, ori_unit='rad', activation_threshold=0.2, **kwargs):
+        X = as_float64(X)
+        vm_feature_set = FeatureSet() \
+            .add_feature(stats.mean) \
+            .add_feature(stats.std) \
+            .add_feature(stats.positive_amplitude) \
+            .add_freq_feature('dominant_frequency', sr=sr, n=1) \
+            .add_freq_feature('dominant_frequency_power_ratio', sr=sr, n=1) \
+            .add_freq_feature('highend_power_ratio', sr=sr) \
+            .add_feature(stats.amplitude_range) \
+            .add_feature(activation.active_perc, threshold=activation_threshold) \
+            .add_feature(activation.activation_count, threshold=activation_threshold) \
+            .add_feature(activation.activation_std, threshold=activation_threshold)
+
+        axis_feature_set = FeatureSet() \
+            .add_orientation_feature('median_angles', subwin_samples=subwin_in_secs * sr,
+                                     unit=ori_unit) \
+            .add_orientation_feature('range_angles', subwin_samples=subwin_in_secs * sr,
+                                     unit=ori_unit)
+
+        X_vm = vec2colarr(norm(X, ord=2, axis=1))
+
+        X_vm_filtered = butterworth(
+            X_vm, sr=sr, cutoffs=20, order=4, type='lowpass')
+
+        X_filtered = butterworth(X, sr=sr, cutoffs=20, order=4, type='lowpass')
+
+        result = pd.concat([vm_feature_set.compute(X_vm_filtered),
+                            axis_feature_set.compute(X_filtered)], axis=1)
+        return result
 
     @staticmethod
     def compute_posture_and_activity(X, sr,

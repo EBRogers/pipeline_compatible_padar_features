@@ -7,8 +7,8 @@ Frequency features
 from scipy import signal, interpolate
 import numpy as np
 from ...libs.signal_processing.detect_peaks import detect_peaks
-from .. import validator
-from .. import formatter
+from ...libs.data_formatting import validator
+from ...libs.data_formatting import formatter
 import logging
 from bokeh.plotting import figure
 from bokeh.palettes import brewer
@@ -149,6 +149,14 @@ class FrequencyFeature:
             return result
         else:
             raise ValueError('Please run spectrogram first')
+
+    def highend_power_ratio(self):
+        highend_power = self.highend_power().values
+        total_power = self.total_power().values
+        result = np.divide(highend_power, total_power, out=np.zeros_like(total_power), where=total_power != 0)
+        result = formatter.add_name(
+            result, self.highend_power_ratio.__name__)
+        return result
 
     def dominant_frequency_power_ratio(self, n=1):
         power = self.total_power().values

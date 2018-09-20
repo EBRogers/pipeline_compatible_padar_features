@@ -53,3 +53,21 @@ def has_enough_samples(X, threshold=1):
     if is_vector(X):
         X = formatter.vec2colarr(X)
     return X.shape[0] >= threshold
+
+
+def is_dataframe(X):
+    return isinstance(X, pd.DataFrame)
+
+
+def is_numpy_array(X):
+    return isinstance(X, np.ndarray)
+
+
+def is_sensor_dataframe(X):
+    if is_dataframe(X):
+        if has_timestamp(X.values):
+            return True
+        else:
+            return False
+    else:
+        return False

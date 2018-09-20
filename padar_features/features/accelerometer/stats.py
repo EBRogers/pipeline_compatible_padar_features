@@ -8,8 +8,8 @@ Date: Jul 10, 2018
 
 """
 import numpy as np
-from .. import validator
-from .. import formatter
+from ...libs.data_formatting import validator
+from ...libs.data_formatting import formatter
 
 
 def mean(X):
