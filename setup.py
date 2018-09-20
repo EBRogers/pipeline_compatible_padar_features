@@ -13,7 +13,7 @@ setup(
         "scipy>=1.1.0",
         "dask[complete]>=0.18.1",
         "bokeh>=0.13.0",
-        "padar_parallel>=0.2.4",
+        "padar_parallel>=0.2.5",
         "padar_converter>=0.2.11"
     ],
 )
