@@ -14,6 +14,6 @@ setup(
         "dask[complete]>=0.18.1",
         "bokeh>=0.13.0",
         "padar_parallel>=0.2.4",
-        "padar_converter>=0.2.10"
+        "padar_converter>=0.2.11"
     ],
 )
