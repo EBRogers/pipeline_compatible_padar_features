@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='padar_features',
-    version='0.2.11',
+    version='0.2.12',
     packages=find_packages(),
     include_package_data=True,
     description='Extension of feature computation to be used in padar package',
@@ -14,6 +14,6 @@ setup(
         "dask[complete]>=0.18.1",
         "bokeh>=0.13.0",
         "padar_parallel>=0.2.5",
-        "padar_converter>=0.2.11"
+        "padar_converter>=0.2.12"
     ],
 )

@@ -86,9 +86,9 @@ class FeatureSet:
         X_vm = vec2colarr(norm(X, ord=2, axis=1))
 
         X_vm_filtered = butterworth(
-            X_vm, sr=sr, cutoffs=20, order=4, type='lowpass')
+            X_vm, sr=sr, cutoffs=20, order=4, btype='lowpass')
 
-        X_filtered = butterworth(X, sr=sr, cutoffs=20, order=4, type='lowpass')
+        X_filtered = butterworth(X, sr=sr, cutoffs=20, order=4, btype='lowpass')
 
         result = pd.concat([vm_feature_set.compute(X_vm_filtered),
                             axis_feature_set.compute(X_filtered)], axis=1)
