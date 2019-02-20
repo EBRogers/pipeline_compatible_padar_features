@@ -5,8 +5,7 @@ import numpy as np
 
 def _check_input(X):
     if not validator.is_xyz_inertial(X):
-        raise ValueError(
-            'Input numpy array must be a 3 axis sensor')
+        raise ValueError('Input numpy array must be a 3 axis sensor')
 
 
 def flip_and_swap(X, x_flip, y_flip, z_flip):
