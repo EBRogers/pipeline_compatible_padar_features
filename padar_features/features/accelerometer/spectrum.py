@@ -45,6 +45,7 @@ class FrequencyFeature:
             scaling='density',
             axis=0,
             mode='psd')
+        Sxx = np.abs(Sxx)
         # interpolate to get values in the freq_range
         if self._freq_range is not None:
             self._freq = interpolate(freq, Sxx)
@@ -200,8 +201,11 @@ class FrequencyFeature:
         # at least 0.1 Hz different when looking for peak
         mpd = int(np.ceil(1.0 / (self._freq[1] - self._freq[0]) * 0.1))
         # print(self._Sxx.shape)
+        # mph should not be set, because signal can be weak but there may still be some dominant frequency
         i = list(map(lambda x: detect_peaks(
-            x, mph=1e-3, mpd=mpd), list(self._Sxx.T)))
+            x, mph=None, mpd=mpd), list(self._Sxx.T)))
+        # i = list(map(lambda x: detect_peaks(
+        #     x, mph=1e-3, mpd=mpd), list(self._Sxx.T)))
         j = range(0, n_axis)
         result = list(map(_sort_peaks, i, j))
         self._freq_peaks = list(map(lambda x: x[0], result))
