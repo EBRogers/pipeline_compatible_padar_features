@@ -44,7 +44,7 @@ class FrequencyFeature:
             return_onesided=True,
             scaling='density',
             axis=0,
-            mode='psd')
+            mode='magnitude')
         Sxx = np.abs(Sxx)
         # interpolate to get values in the freq_range
         if self._freq_range is not None:
@@ -154,7 +154,8 @@ class FrequencyFeature:
     def highend_power_ratio(self):
         highend_power = self.highend_power().values
         total_power = self.total_power().values
-        result = np.divide(highend_power, total_power, out=np.zeros_like(total_power), where=total_power != 0)
+        result = np.divide(highend_power, total_power, out=np.zeros_like(
+            total_power), where=total_power != 0)
         result = formatter.add_name(
             result, self.highend_power_ratio.__name__)
         return result
@@ -201,7 +202,7 @@ class FrequencyFeature:
         # at least 0.1 Hz different when looking for peak
         mpd = int(np.ceil(1.0 / (self._freq[1] - self._freq[0]) * 0.1))
         # print(self._Sxx.shape)
-        # mph should not be set, because signal can be weak but there may still be some dominant frequency
+        # mph should not be set, because signal can be weak but there may still be some dominant frequency, 06/03/2019
         i = list(map(lambda x: detect_peaks(
             x, mph=None, mpd=mpd), list(self._Sxx.T)))
         # i = list(map(lambda x: detect_peaks(
