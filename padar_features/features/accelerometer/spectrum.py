@@ -57,6 +57,19 @@ class FrequencyFeature:
         self._Sxx = formatter.vec2colarr(Sxx_interpolated)
         return self
 
+    def spectral_entropy(self):
+        # normalized
+        if hasattr(self, '_Sxx'):
+            sum_of_Sxx = np.sum(self._Sxx, axis=0)
+            psd = self._Sxx / sum_of_Sxx
+            s_entropy = -np.sum(np.multiply(psd, np.log2(psd)), axis=0)
+            result = s_entropy / np.log2(len(self._freq))
+            result = formatter.vec2rowarr(np.array(result))
+            result = formatter.add_name(result, self.spectral_entropy.__name__)
+            return result
+        else:
+            raise ValueError('Please run spectrogram first')
+
     def dominant_frequency(self, n=1):
         if hasattr(self, '_freq_peaks'):
             result = list(

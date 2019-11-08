@@ -63,7 +63,12 @@ class FeatureSet:
         return feature_set.compute(X)
 
     @staticmethod
-    def location_matters(X, sr, subwin_in_secs=2, ori_unit='rad', activation_threshold=0.2, **kwargs):
+    def muss_features(X, sr,
+                      subwin_in_secs=2,
+                      ori_unit='rad',
+                      activation_threshold=0.2,
+                      extra_features=False,
+                      **kwargs):
         X = as_float64(X)
         vm_feature_set = FeatureSet() \
             .add_feature(stats.mean) \
@@ -73,12 +78,21 @@ class FeatureSet:
             .add_freq_feature('dominant_frequency_power_ratio', sr=sr, n=1) \
             .add_freq_feature('highend_power_ratio', sr=sr) \
             .add_feature(stats.amplitude_range) \
-            .add_feature(activation.active_perc, threshold=activation_threshold) \
-            .add_feature(activation.activation_count, threshold=activation_threshold) \
-            .add_feature(activation.activation_std, threshold=activation_threshold)
+            .add_feature(activation.active_perc,
+                         threshold=activation_threshold) \
+            .add_feature(activation.activation_count,
+                         threshold=activation_threshold) \
+            .add_feature(activation.activation_std,
+                         threshold=activation_threshold)
+
+        if extra_features:
+            vm_feature_set.add_freq_feature('spectral_entropy', sr=sr)
+            vm_feature_set.add_feature(stats.skew)
+            vm_feature_set.add_feature(stats.kurtosis)
 
         axis_feature_set = FeatureSet() \
-            .add_orientation_feature('median_angles', subwin_samples=subwin_in_secs * sr,
+            .add_orientation_feature('median_angles',
+                                     subwin_samples=subwin_in_secs * sr,
                                      unit=ori_unit) \
             .add_orientation_feature('range_angles', subwin_samples=subwin_in_secs * sr,
                                      unit=ori_unit)
@@ -88,7 +102,8 @@ class FeatureSet:
         X_vm_filtered = butterworth(
             X_vm, sr=sr, cutoffs=20, order=4, btype='lowpass')
 
-        X_filtered = butterworth(X, sr=sr, cutoffs=20, order=4, btype='lowpass')
+        X_filtered = butterworth(X, sr=sr, cutoffs=20,
+                                 order=4, btype='lowpass')
 
         result = pd.concat([vm_feature_set.compute(X_vm_filtered),
                             axis_feature_set.compute(X_filtered)], axis=1)

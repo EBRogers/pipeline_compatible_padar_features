@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='padar_features',
-    version='0.2.14',
+    version='0.3.0',
     packages=find_packages(),
     include_package_data=True,
     description='Extension of feature computation to be used in padar package',

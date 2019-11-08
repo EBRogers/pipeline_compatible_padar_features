@@ -10,6 +10,7 @@ Date: Jul 10, 2018
 import numpy as np
 from ...libs.data_formatting import validator
 from ...libs.data_formatting import formatter
+from scipy import stats as sp_stats
 
 
 def mean(X):
@@ -47,7 +48,8 @@ def negative_amplitude(X):
 def amplitude_range(X):
     _check_input(X)
     X = formatter.as_float64(X)
-    result = formatter.vec2rowarr(positive_amplitude(X).values - negative_amplitude(X).values)
+    result = formatter.vec2rowarr(positive_amplitude(
+        X).values - negative_amplitude(X).values)
     result = formatter.add_name(result, amplitude_range.__name__)
     return result
 
@@ -57,6 +59,33 @@ def amplitude(X):
     X = formatter.as_float64(X)
     result = formatter.vec2rowarr(np.nanmax(np.abs(X), axis=0))
     result = formatter.add_name(result, amplitude.__name__)
+    return result
+
+
+def skew(X):
+    _check_input(X)
+    X = formatter.as_float64(X)
+    result = formatter.vec2rowarr(sp_stats.skew(X, axis=0))
+    result = formatter.add_name(result, skew.__name__)
+    return result
+
+
+def kurtosis(X):
+    _check_input(X)
+    X = formatter.as_float64(X)
+    result = formatter.vec2rowarr(sp_stats.kurtosis(X, axis=0))
+    result = formatter.add_name(result, kurtosis.__name__)
+    return result
+
+
+def correlation(X):
+    _check_input(X)
+    X = formatter.as_float64(X)
+    corr_mat = np.corrcoef(X, rowvar=False)
+    inds = np.tril_indices(n=3, k=-1, m=3)
+    result = corr_mat[inds[:]]
+    result = formatter.vec2rowarr(result)
+    result = formatter.add_name(result, correlation.__name__)
     return result
 
 
