@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='padar_features',
-    version='0.3.0',
+    name='pf4pipeline',
+    version='0.0.4',
     packages=find_packages(),
     include_package_data=True,
-    description='Extension of feature computation to be used in padar package, modified for Pipeline',
+    description='Modification for pipeline of padar_features, an extension of feature computation to be used in padar package.',
     long_description=open('README.md').read(),
     install_requires=[
         "pandas>=0.23.0",
