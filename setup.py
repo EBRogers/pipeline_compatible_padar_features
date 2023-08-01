@@ -10,7 +10,7 @@ setup(
     install_requires=[
         "pandas>=0.23.0",
         "numpy>=1.15.1",
-        "scipy>=1.1.0"
+        "scipy>=1.1.0",
         "bokeh>=0.13.0"
     ],
 )
