@@ -9,7 +9,7 @@ setup(
     long_description=open('README.md').read(),
     install_requires=[
         "pandas>=0.23.0",
-        "numpy>=1.15.1",
+        "numpy>=1.15.1,<=1.20.3,",
         "scipy>=1.1.0",
         "bokeh>=0.13.0"
     ],
