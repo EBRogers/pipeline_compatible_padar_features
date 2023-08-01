@@ -9,14 +9,11 @@ import numpy as np
 from ...libs.signal_processing.detect_peaks import detect_peaks
 from ...libs.data_formatting import validator
 from ...libs.data_formatting import formatter
-import logging
 from bokeh.plotting import figure
 from bokeh.palettes import brewer
 from bokeh.models import ColumnDataSource, LabelSet, Label
 from bokeh.layouts import gridplot
 
-
-logger = logging.getLogger()
 
 
 class FrequencyFeature:
@@ -25,7 +22,6 @@ class FrequencyFeature:
         self._X = X
         self._sr = sr
         self._freq_range = freq_range
-        logger.info('SR=' + str(sr))
 
     def _check_input(self, X):
         if not validator.is_xyz_inertial(X) and not validator.is_vm_inertial(X):

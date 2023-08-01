@@ -53,7 +53,6 @@ class OrientationFeature:
         result = operator.apply_over_subwins(
             self._X, OrientationFeature.orientation_xyz, subwins=self._subwins, subwin_samples=self._subwin_samples, unit=unit)
         self._orientations = np.concatenate(result, axis=0)
-        logger.debug("Est.Orientation=" + str(self._orientations.shape))
         return self
 
     def median_angles(self):
