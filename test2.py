@@ -1,6 +1,6 @@
-from padar_features.libs.signal_generator import SignalGenerator
-from padar_features.features.accelerometer.spectrum import FrequencyFeature
-from padar_features.FeatureExtractor import FeatureExtractor
+from pf4pipeline.libs.signal_generator import SignalGenerator
+from pf4pipeline.features.accelerometer.spectrum import FrequencyFeature
+from pf4pipeline.FeatureExtractor import FeatureExtractor
 import sys
 from bokeh.plotting import show
 from clize import run
