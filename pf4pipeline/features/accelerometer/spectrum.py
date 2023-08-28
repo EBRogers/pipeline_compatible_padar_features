@@ -40,8 +40,12 @@ class FrequencyFeature:
             return_onesided=True,
             scaling='density',
             axis=0,
-            mode='magnitude')
-        Sxx = np.abs(Sxx)
+            mode='psd')
+        # mode='magnitude')
+        # Sxx = np.abs(Sxx)
+
+        #edited to match padar-features 0.2.12
+
         # interpolate to get values in the freq_range
         if self._freq_range is not None:
             self._freq = interpolate(freq, Sxx)
@@ -70,10 +74,7 @@ class FrequencyFeature:
         if hasattr(self, '_freq_peaks'):
             result = list(
                 map(
-                    lambda i: self._freq_peaks[i][n -
-                                                  1] if
-                    len(self._freq_peaks[i]) >= n else -1,
-                    range(0, self._Sxx.shape[1])))
+                    lambda i: self._freq_peaks[i][n - 1] if len(self._freq_peaks[i]) >= n else -1, range(0, self._Sxx.shape[1])))
             result = formatter.vec2rowarr(np.array(result))
             result = formatter.add_name(
                 result, self.dominant_frequency.__name__)
@@ -210,10 +211,13 @@ class FrequencyFeature:
         mpd = int(np.ceil(1.0 / (self._freq[1] - self._freq[0]) * 0.1))
         # print(self._Sxx.shape)
         # mph should not be set, because signal can be weak but there may still be some dominant frequency, 06/03/2019
+        #i = list(map(lambda x: detect_peaks(
+        #    x, mph=None, mpd=mpd), list(self._Sxx.T)))
+
+        # edited to match padar-features 0.2.12
         i = list(map(lambda x: detect_peaks(
-            x, mph=None, mpd=mpd), list(self._Sxx.T)))
-        # i = list(map(lambda x: detect_peaks(
-        #     x, mph=1e-3, mpd=mpd), list(self._Sxx.T)))
+            x, mph=1e-3, mpd=mpd), list(self._Sxx.T)))
+
         j = range(0, n_axis)
         result = list(map(_sort_peaks, i, j))
         self._freq_peaks = list(map(lambda x: x[0], result))
